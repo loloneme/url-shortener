@@ -1,0 +1,90 @@
+ ДЛЯ IN-MEMORY:
+
+ execution: local
+        script: load_test.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 500 max VUs, 6m50s max duration (incl. graceful stop):
+              * default: Up to 500 looping VUs for 6m20s over 5 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+
+  █ THRESHOLDS
+
+    http_req_duration
+    ✓ 'p(95)<200' p(95)=11.57ms
+
+    http_req_failed
+    ✓ 'rate<0.01' rate=0.00%
+
+
+  █ TOTAL RESULTS
+
+    checks_total.......: 266624  700.134961/s
+    checks_succeeded...: 100.00% 266624 out of 266624
+    checks_failed......: 0.00%   0 out of 266624
+
+    ✓ shorten: status 200
+    ✓ shorten: has short_url
+    ✓ get original url: status 200
+    ✓ get original url: has original_url
+
+    HTTP
+    http_req_duration..............: avg=4.43ms min=503.2µs med=3.11ms max=94.01ms p(90)=8.28ms p(95)=11.57ms
+      { expected_response:true }...: avg=4.43ms min=503.2µs med=3.11ms max=94.01ms p(90)=8.28ms p(95)=11.57ms
+    http_req_failed................: 0.00%  0 out of 133312
+    http_reqs......................: 133312 350.067481/s
+
+    EXECUTION
+    iteration_duration.............: avg=1.01s  min=1s      med=1s     max=1.15s   p(90)=1.02s  p(95)=1.03s
+    iterations.....................: 66656  175.03374/s
+    vus............................: 24     min=1           max=499
+    vus_max........................: 500    min=500         max=500
+
+    NETWORK
+    data_received..................: 28 MB  72 kB/s
+    data_sent......................: 17 MB  44 kB/s
+
+
+
+
+running (6m20.8s), 000/500 VUs, 66656 complete and 0 interrupted iterations
+default ✓ [======================================] 000/500 VUs  6m20s
+
+
+ДЛЯ POSTGRESQL:
+  █ THRESHOLDS
+
+    http_req_duration
+    ✓ 'p(95)<200' p(95)=32.22ms
+
+    http_req_failed
+    ✓ 'rate<0.01' rate=0.00%
+
+
+  █ TOTAL RESULTS
+
+    checks_total.......: 264352  694.022405/s
+    checks_succeeded...: 100.00% 264352 out of 264352
+    checks_failed......: 0.00%   0 out of 264352
+
+    ✓ shorten: status 200
+    ✓ shorten: has short_url
+    ✓ get original url: status 200
+    ✓ get original url: has original_url
+
+    HTTP
+    http_req_duration..............: avg=9.12ms min=504.2µs med=4.54ms max=281.17ms p(90)=20.83ms p(95)=32.22ms
+      { expected_response:true }...: avg=9.12ms min=504.2µs med=4.54ms max=281.17ms p(90)=20.83ms p(95)=32.22ms
+    http_req_failed................: 0.00%  0 out of 132176
+    http_reqs......................: 132176 347.011203/s
+
+    EXECUTION
+    iteration_duration.............: avg=1.02s  min=1s      med=1.01s  max=1.29s    p(90)=1.04s   p(95)=1.06s
+    iterations.....................: 66088  173.505601/s
+    vus............................: 2      min=1           max=499
+    vus_max........................: 500    min=500         max=500
+
+    NETWORK
+    data_received..................: 27 MB  72 kB/s
+    data_sent......................: 17 MB  44 kB/s

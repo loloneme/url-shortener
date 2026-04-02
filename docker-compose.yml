@@ -1,0 +1,12 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: url-shortener-app
+    environment:
+      STORAGE_TYPE: memory
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    restart: on-failure

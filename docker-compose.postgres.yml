@@ -1,0 +1,56 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: url-shortener-app
+    environment:
+      PG_HOST: postgres
+      PG_PORT: 5432
+      PG_USER: postgres
+      PG_PASSWORD: postgres
+      PG_DB: shortened_urls
+      STORAGE_TYPE: postgres
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      flyway:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: url-shortener-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: shortened_urls
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  flyway:
+    image: flyway/flyway:10-alpine
+    container_name: url-shortener-flyway
+    command: -url=jdbc:postgresql://postgres:5432/shortened_urls -user=postgres -password=postgres -connectRetries=60 migrate
+    volumes:
+      - ./migrations/postgres:/flyway/sql
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+
+
+
+volumes:
+  postgres_data:
