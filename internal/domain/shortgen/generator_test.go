@@ -1,42 +1,41 @@
 package shortgen
 
 import (
-	"math/rand"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestGenerator(t *testing.T) {
-	testRand := rand.New(rand.NewSource(42))
-	gen := NewGenerator(testRand)
-
-	t.Run("length is 10", func(t *testing.T) {
-		result := gen.Generate()
-
-		assert.Len(t, result, 10)
+func TestEncodeID(t *testing.T) {
+	t.Run("encodes to 10 characters", func(t *testing.T) {
+		result, err := EncodeID(1)
+		require.NoError(t, err)
+		assert.Len(t, result, shortLength)
 	})
 
-	t.Run("result contains only charset chars", func(t *testing.T) {
-		result := gen.Generate()
+	t.Run("zero id returns error", func(t *testing.T) {
+		_, err := EncodeID(0)
+		assert.Error(t, err)
+	})
 
-		for _, ch := range result {
-			require.True(t, strings.ContainsRune(charset, ch))
+	t.Run("different ids produce different shorts", func(t *testing.T) {
+		s1, _ := EncodeID(1)
+		s2, _ := EncodeID(2)
+		assert.NotEqual(t, s1, s2)
+	})
+
+	t.Run("too large id returns error", func(t *testing.T) {
+		_, err := EncodeID(^uint64(0))
+		assert.Error(t, err)
+	})
+
+	t.Run("encoded result passes validation", func(t *testing.T) {
+		for i := uint64(1); i <= 100; i++ {
+			short, err := EncodeID(i)
+			require.NoError(t, err)
+			assert.NoError(t, Validate(short))
 		}
-	})
-
-	t.Run("same rand seed generates same result", func(t *testing.T) {
-		rand1 := rand.New(rand.NewSource(42))
-		rand2 := rand.New(rand.NewSource(42))
-		gen1 := NewGenerator(rand1)
-		gen2 := NewGenerator(rand2)
-
-		result1 := gen1.Generate()
-		result2 := gen2.Generate()
-
-		assert.Equal(t, result1, result2)
 	})
 }
 
@@ -75,13 +74,6 @@ func TestValidate(t *testing.T) {
 		}
 		for _, code := range invalidCodes {
 			assert.Error(t, Validate(code), "expected %q to be invalid", code)
-		}
-	})
-
-	t.Run("generated code passes validation", func(t *testing.T) {
-		gen := NewGenerator(rand.New(rand.NewSource(99)))
-		for i := 0; i < 100; i++ {
-			assert.NoError(t, Validate(gen.Generate()))
 		}
 	})
 }

@@ -2,6 +2,7 @@ package shorten
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"url-shortener/internal/infrastructure/logger"
@@ -31,13 +32,18 @@ func (h *Handler) ShortenUrl(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
 	}
 
-	urlModel, err := h.service.ShortenUrl(c.Request().Context(), httpReq.Url)
+	urlModel, created, err := h.service.ShortenUrl(c.Request().Context(), httpReq.Url)
 	if err != nil {
 		log.Error("ShortenUrl failed", "error", err)
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, shortenUrlResponse{ShortUrl: urlModel.Short})
+	status := http.StatusOK
+	if created {
+		status = http.StatusCreated
+	}
+
+	return c.JSON(status, shortenUrlResponse{ShortUrl: fmt.Sprintf("http://localhost:8080/%s/redirect", urlModel.Short)})
 }
 
 func (h *Handler) validateRequest(shortenUrlRequest *shortenUrlRequest) error {

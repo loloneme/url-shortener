@@ -8,10 +8,6 @@ import (
 )
 
 type repo interface {
-	Save(ctx context.Context, url *domain.ShortenedURL) error
+	Save(ctx context.Context, original string) (*domain.ShortenedURL, error)
 	GetByOriginal(ctx context.Context, original string) (*domain.ShortenedURL, error)
-}
-
-type generator interface {
-	Generate() string
 }

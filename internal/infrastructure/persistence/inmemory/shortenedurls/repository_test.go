@@ -12,64 +12,89 @@ import (
 )
 
 func TestRepositorySave(t *testing.T) {
-	t.Run("saves and returns existing URL by short", func(t *testing.T) {
+	t.Run("saves and returns model with generated short", func(t *testing.T) {
 		repo := NewRepository()
 		ctx := context.Background()
 
-		err := repo.Save(ctx, &Model{Short: "abcdefghij", Original: "https://example.com"})
-		require.NoError(t, err)
-
-		result, err := repo.GetByShort(ctx, "abcdefghij")
+		model, err := repo.Save(ctx, "https://example.com")
 
 		require.NoError(t, err)
-		assert.Equal(t, "https://example.com", result.Original)
+		assert.Equal(t, uint64(1), model.ID)
+		assert.Equal(t, "https://example.com", model.Original)
+		assert.Len(t, model.Short, 10)
 	})
 
-	t.Run("saves and returns existing URL by original", func(t *testing.T) {
+	t.Run("returns existing model for duplicate original", func(t *testing.T) {
 		repo := NewRepository()
 		ctx := context.Background()
 
-		err := repo.Save(ctx, &Model{Short: "abcdefghij", Original: "https://example.com"})
+		first, err := repo.Save(ctx, "https://example.com")
 		require.NoError(t, err)
 
-		result, err := repo.GetByOriginal(ctx, "https://example.com")
-
+		second, err := repo.Save(ctx, "https://example.com")
 		require.NoError(t, err)
-		assert.Equal(t, "abcdefghij", result.Short)
+
+		assert.Equal(t, first.ID, second.ID)
+		assert.Equal(t, first.Short, second.Short)
 	})
 
-	t.Run("duplicate short returns ErrDuplicate", func(t *testing.T) {
+	t.Run("increments ID for different originals", func(t *testing.T) {
 		repo := NewRepository()
 		ctx := context.Background()
-		_ = repo.Save(ctx, &Model{Short: "abcdefghij", Original: "https://example-1.com"})
-		err := repo.Save(ctx, &Model{Short: "abcdefghij", Original: "https://example-2.com"})
 
-		assert.ErrorIs(t, err, domain.ErrDuplicate)
-	})
+		first, _ := repo.Save(ctx, "https://example-1.com")
+		second, _ := repo.Save(ctx, "https://example-2.com")
 
-	t.Run("duplicate original is idempotent", func(t *testing.T) {
-		repo := NewRepository()
-		ctx := context.Background()
-		_ = repo.Save(ctx, &Model{Short: "abcdefghij", Original: "https://example.com"})
-		err := repo.Save(ctx, &Model{Short: "1234567890", Original: "https://example.com"})
-		assert.NoError(t, err)
-		result, _ := repo.GetByOriginal(ctx, "https://example.com")
-		assert.Equal(t, "abcdefghij", result.Short, "original short should not be overwritten")
+		assert.Equal(t, uint64(1), first.ID)
+		assert.Equal(t, uint64(2), second.ID)
+		assert.NotEqual(t, first.Short, second.Short)
 	})
 }
 
 func TestRepositoryGetByShort(t *testing.T) {
-	t.Run("return not found error if short is not found", func(t *testing.T) {
+	t.Run("returns saved URL by short", func(t *testing.T) {
 		repo := NewRepository()
+		ctx := context.Background()
+
+		saved, err := repo.Save(ctx, "https://example.com")
+		require.NoError(t, err)
+
+		result, err := repo.GetByShort(ctx, saved.Short)
+
+		require.NoError(t, err)
+		assert.Equal(t, "https://example.com", result.Original)
+		assert.Equal(t, saved.ID, result.ID)
+	})
+
+	t.Run("returns not found for unknown short", func(t *testing.T) {
+		repo := NewRepository()
+
 		_, err := repo.GetByShort(context.Background(), "abcdefghij")
+
 		assert.ErrorIs(t, err, domain.ErrNotFound)
 	})
 }
 
 func TestRepositoryGetByOriginal(t *testing.T) {
-	t.Run("return not found error if original is not found", func(t *testing.T) {
+	t.Run("returns saved URL by original", func(t *testing.T) {
 		repo := NewRepository()
+		ctx := context.Background()
+
+		saved, err := repo.Save(ctx, "https://example.com")
+		require.NoError(t, err)
+
+		result, err := repo.GetByOriginal(ctx, "https://example.com")
+
+		require.NoError(t, err)
+		assert.Equal(t, saved.Short, result.Short)
+		assert.Equal(t, saved.ID, result.ID)
+	})
+
+	t.Run("returns not found for unknown original", func(t *testing.T) {
+		repo := NewRepository()
+
 		_, err := repo.GetByOriginal(context.Background(), "https://example.com")
+
 		assert.ErrorIs(t, err, domain.ErrNotFound)
 	})
 }
@@ -85,16 +110,20 @@ func TestConcurrentAccess(t *testing.T) {
 	for i := range goroutines {
 		go func(n int) {
 			defer wg.Done()
-			short := fmt.Sprintf("short_%04d", n)
 			original := fmt.Sprintf("https://example.com/%d", n)
-			_ = repo.Save(ctx, &Model{Short: short, Original: original})
+			_, _ = repo.Save(ctx, original)
 		}(i)
 	}
 	wg.Wait()
+
 	for i := range goroutines {
-		short := fmt.Sprintf("short_%04d", i)
-		result, err := repo.GetByShort(ctx, short)
+		original := fmt.Sprintf("https://example.com/%d", i)
+		result, err := repo.GetByOriginal(ctx, original)
 		require.NoError(t, err)
-		assert.Equal(t, fmt.Sprintf("https://example.com/%d", i), result.Original)
+		assert.Equal(t, original, result.Original)
+
+		byShort, err := repo.GetByShort(ctx, result.Short)
+		require.NoError(t, err)
+		assert.Equal(t, original, byShort.Original)
 	}
 }

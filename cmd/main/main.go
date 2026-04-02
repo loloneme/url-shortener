@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"math/rand"
 	"net/http"
 	"os/signal"
 	"syscall"
@@ -14,7 +13,6 @@ import (
 	"url-shortener/internal/api/getoriginal"
 	"url-shortener/internal/api/redirect"
 	"url-shortener/internal/api/shorten"
-	"url-shortener/internal/domain/shortgen"
 	"url-shortener/internal/infrastructure/config"
 	"url-shortener/internal/infrastructure/db/postgres"
 	"url-shortener/internal/infrastructure/logger"
@@ -51,9 +49,7 @@ func main() {
 
 	defer cleanup()
 
-	generator := shortgen.NewGenerator(rand.New(rand.NewSource(time.Now().UnixNano())))
-
-	shortenService := shortensvc.New(storage.urlRepo, generator)
+	shortenService := shortensvc.New(storage.urlRepo)
 	getOriginalService := getoriginalsvc.New(storage.urlRepo)
 
 	shortenHandler := shorten.New(shortenService)

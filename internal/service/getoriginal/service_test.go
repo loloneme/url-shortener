@@ -19,7 +19,7 @@ func TestGetOriginalSuccess(t *testing.T) {
 	mockRepo := mock.NewMockrepo(ctrl)
 	ctx := context.Background()
 
-	existing := &domain.ShortenedURL{Short: "abcdefghij", Original: "https://example.com"}
+	existing := &domain.ShortenedURL{ID: 1, Short: "abcdefghij", Original: "https://example.com"}
 
 	mockRepo.EXPECT().
 		GetByShort(ctx, existing.Short).
@@ -39,16 +39,14 @@ func TestGetOriginalRepoError(t *testing.T) {
 	mockRepo := mock.NewMockrepo(ctrl)
 	ctx := context.Background()
 
-	existing := &domain.ShortenedURL{Short: "abcdefghij", Original: "https://example.com"}
-
 	repoErr := errors.New("database connection error")
 	mockRepo.EXPECT().
-		GetByShort(ctx, existing.Short).
-		Return(existing, repoErr)
+		GetByShort(ctx, "abcdefghij").
+		Return(nil, repoErr)
 
 	service := New(mockRepo)
 
-	result, err := service.GetOriginalUrl(ctx, existing.Short)
+	result, err := service.GetOriginalUrl(ctx, "abcdefghij")
 
 	require.Error(t, err)
 	assert.Nil(t, result)

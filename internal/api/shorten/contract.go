@@ -8,7 +8,7 @@ import (
 )
 
 type ShortenUrlService interface {
-	ShortenUrl(ctx context.Context, url string) (*domain.ShortenedURL, error)
+	ShortenUrl(ctx context.Context, url string) (*domain.ShortenedURL, bool, error)
 }
 
 type shortenUrlRequest struct {

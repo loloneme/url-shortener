@@ -15,9 +15,9 @@ func New(repo repo) *Service {
 }
 
 func (s *Service) GetOriginalUrl(ctx context.Context, short string) (*domain.ShortenedURL, error) {
-	urlModel, err := s.repo.GetByShort(ctx, short)
+	model, err := s.repo.GetByShort(ctx, short)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get original url: %w", err)
 	}
-	return urlModel, nil
+	return model, nil
 }

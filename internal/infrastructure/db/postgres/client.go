@@ -11,12 +11,16 @@ import (
 )
 
 type Config struct {
-	Host     string `env:"PG_HOST" envDefault:"localhost"`
-	Port     string `env:"PG_PORT" envDefault:"5432"`
-	User     string `env:"PG_USER" envDefault:"postgres"`
-	Password string `env:"PG_PASSWORD" envDefault:"postgres"`
-	DBName   string `env:"PG_DB" envDefault:"shortened_urls"`
-	SSLMode  string `env:"PG_SSLMODE" envDefault:"disable"`
+	Host            string        `env:"PG_HOST" envDefault:"localhost"`
+	Port            string        `env:"PG_PORT" envDefault:"5432"`
+	User            string        `env:"PG_USER" envDefault:"postgres"`
+	Password        string        `env:"PG_PASSWORD" envDefault:"postgres"`
+	DBName          string        `env:"PG_DB" envDefault:"shortened_urls"`
+	SSLMode         string        `env:"PG_SSLMODE" envDefault:"disable"`
+	MaxOpenConns    int           `env:"MAX_OPEN_CONNS" envDefault:"25"`
+	MaxIdleConns    int           `env:"MAX_IDLE_CONNS" envDefault:"10"`
+	ConnMaxLifetime time.Duration `env:"CONN_MAX_LIFETIME" envDefault:"5m"`
+	ConnMaxIdleTime time.Duration `env:"CONN_MAX_IDLE_TIME" envDefault:"1m"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -41,6 +45,11 @@ func NewFromConfig(ctx context.Context) (*sqlx.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error opening postgres: %w", err)
 	}
+
+	db.SetMaxOpenConns(cfg.MaxOpenConns)
+	db.SetMaxIdleConns(cfg.MaxIdleConns)
+	db.SetConnMaxLifetime(cfg.ConnMaxLifetime)
+	db.SetConnMaxIdleTime(cfg.ConnMaxIdleTime)
 
 	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()

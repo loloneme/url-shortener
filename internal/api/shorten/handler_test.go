@@ -34,14 +34,38 @@ func TestShortenHandlerSuccess(t *testing.T) {
 
 	mockService.EXPECT().
 		ShortenUrl(gomock.Any(), "https://example.com").
-		Return(&domain.ShortenedURL{Short: "abcdefghij", Original: "https://example.com"}, nil)
+		Return(&domain.ShortenedURL{Short: "abcdefghij", Original: "https://example.com"}, true, nil)
+
+	handler := New(mockService)
+	err := handler.ShortenUrl(c)
+
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusCreated, rec.Code)
+	assert.JSONEq(t, `{"short_url":"http://localhost:8080/abcdefghij/redirect"}`, rec.Body.String())
+}
+
+func TestShortenHandlerReturnsExisting(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockService := mock.NewMockShortenUrlService(ctrl)
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/api/shorten", strings.NewReader(`{"url":"https://example.com"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	mockService.EXPECT().
+		ShortenUrl(gomock.Any(), "https://example.com").
+		Return(&domain.ShortenedURL{Short: "abcdefghij", Original: "https://example.com"}, false, nil)
 
 	handler := New(mockService)
 	err := handler.ShortenUrl(c)
 
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
-	assert.JSONEq(t, `{"short_url":"abcdefghij"}`, rec.Body.String())
+	assert.JSONEq(t, `{"short_url":"http://localhost:8080/abcdefghij/redirect"}`, rec.Body.String())
 }
 
 func TestShortenUrlHandlerFail(t *testing.T) {
@@ -134,7 +158,7 @@ func testInternalServerError(t *testing.T) {
 
 	mockService.EXPECT().
 		ShortenUrl(gomock.Any(), "https://example.com").
-		Return(nil, serviceError)
+		Return(nil, false, serviceError)
 
 	handler := New(mockService)
 	err := handler.ShortenUrl(c)

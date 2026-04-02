@@ -57,53 +57,16 @@ func (mr *MockrepoMockRecorder) GetByOriginal(ctx, original any) *gomock.Call {
 }
 
 // Save mocks base method.
-func (m *Mockrepo) Save(ctx context.Context, url *shortenedurl.ShortenedURL) error {
+func (m *Mockrepo) Save(ctx context.Context, original string) (*shortenedurl.ShortenedURL, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", ctx, url)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "Save", ctx, original)
+	ret0, _ := ret[0].(*shortenedurl.ShortenedURL)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Save indicates an expected call of Save.
-func (mr *MockrepoMockRecorder) Save(ctx, url any) *gomock.Call {
+func (mr *MockrepoMockRecorder) Save(ctx, original any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*Mockrepo)(nil).Save), ctx, url)
-}
-
-// Mockgenerator is a mock of generator interface.
-type Mockgenerator struct {
-	ctrl     *gomock.Controller
-	recorder *MockgeneratorMockRecorder
-	isgomock struct{}
-}
-
-// MockgeneratorMockRecorder is the mock recorder for Mockgenerator.
-type MockgeneratorMockRecorder struct {
-	mock *Mockgenerator
-}
-
-// NewMockgenerator creates a new mock instance.
-func NewMockgenerator(ctrl *gomock.Controller) *Mockgenerator {
-	mock := &Mockgenerator{ctrl: ctrl}
-	mock.recorder = &MockgeneratorMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *Mockgenerator) EXPECT() *MockgeneratorMockRecorder {
-	return m.recorder
-}
-
-// Generate mocks base method.
-func (m *Mockgenerator) Generate() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Generate")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// Generate indicates an expected call of Generate.
-func (mr *MockgeneratorMockRecorder) Generate() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*Mockgenerator)(nil).Generate))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*Mockrepo)(nil).Save), ctx, original)
 }

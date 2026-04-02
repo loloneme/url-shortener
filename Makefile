@@ -15,7 +15,7 @@ generate-mocks:
 
 test:
 	@echo Running all unit-tests...
-	go test ./... -cover
+	go test ./... -cover -v
 
 with-in-memo-docker-up:
 	@echo Building Docker Image with In-Memory...

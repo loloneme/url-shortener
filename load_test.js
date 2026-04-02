@@ -28,7 +28,7 @@ function shortenUrl(original){
     const res = http.post(`${BASE_URL}/api/shorten`, payload, params);
 
     const success = check(res, {
-        'shorten: status 200': (r) => r.status === 200,
+        'shorten: status 200 or 201': (r) => r.status === 200 || r.status === 201,
         'shorten: has short_url':  (r) => !!r.json('short_url'),
     });
 
@@ -57,12 +57,15 @@ function getOriginalUrl(short){
 
 export default function () {
     const originalUrl = `https://example.com/${__VU}-${__ITER}`;
+
     const shortUrl = shortenUrl(originalUrl);
+
+    const short = shortUrl.split('/')[3];
 
     sleep(0.5)
 
     if (shortUrl) {
-        getOriginalUrl(shortUrl);
+        getOriginalUrl(short);
     }
 
     sleep(0.5)

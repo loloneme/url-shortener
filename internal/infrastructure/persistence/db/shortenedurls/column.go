@@ -1,11 +1,7 @@
 package shortenedurls
 
-var writableColumns = []string{
-	"short",
-	"original",
-}
-
 var readableColumns = []string{
+	"id",
 	"short",
 	"original",
 }
