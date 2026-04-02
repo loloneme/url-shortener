@@ -50,7 +50,7 @@
 
 1. Склонировать репозиторий
 ```bash 
-git clone https://github.com/loloneme/potential-waffle.git
+git clone https://github.com/loloneme/url-shortener.git
 ```
 
 2. Запустить проект с помощью Make
