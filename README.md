@@ -17,6 +17,13 @@
 }
 ```
 
+**Response:**
+```json
+{
+  "short_url: "http://localhost:8080/AAAAAAAA/redirect"
+}
+```
+
 
 ### GET /api/:short
 Получение оригинальной ссылки в JSON:
